@@ -103,4 +103,4 @@ if __name__ == '__main__':
             print('Batch ', i)
             print('Inference ', sess.run(output, feed_dict={x_: X, y_: Y}))
             print('Cost ', sess.run(cost, feed_dict={x_: X, y_: Y}))
-    # print('op: ', sess.run(output))
+    print('op: ', sess.run(output))

@@ -1,42 +1,36 @@
 import tensorflow as tf
 import numpy as np
 
-x = [[0, 0], [0, 1], [1, 0], [1, 1]]
-y = [[0], [1], [1], [0]]
-
-w1 = np.random.randn(2, 4)
-w2 = np.random.randn(4, 1)
-
+X = np.array([[0, 0],
+              [0, 1],
+              [1, 0],
+              [1, 1]])
+Y = np.array([[0, 1, 1, 0]])
 LEARNING_RATE = 0.05
+STEP = 200000
 
+x = tf.placeholder(tf.float32, shape=X.shape, name='x-input')
+y = tf.placeholder(tf.float32, shape=Y.shape, name='y-input')
 
-# 开始迭代
-def sigmoid(y):
-    return 1 / (1 + np.exp(-y))
+theta1 = tf.Variable(tf.random_uniform(X.shape[::-1], -1, 1), name='theta1')
+theta2 = tf.Variable(tf.random_uniform(Y.shape[::-1], -1, 1), name='theta2')
 
-def desigmoid(x):
-    return x*(1-x)
-def update():
-    global w1,w2,y,x
-    y_HiddenLayer = sigmoid(np.dot(x , w1))
-    y_OutputLayer = sigmoid(np.dot(y_HiddenLayer , w2))
+bias1 = tf.Variable(tf.zeros([Y.shape[1]]), name='bias1')
+bias2 = tf.Variable(tf.zeros([1]), name='bias2')
 
-    w2 = y_OutputLayer - LEARNING_RATE * ((y - y_OutputLayer)* * y_HiddenLayer.dot(1 - y_OutputLayer))
-    w1 = y_HiddenLayer - LEARNING_RATE * ((y_OutputLayer-y_HiddenLayer)*y_HiddenLayer*(1-y_HiddenLayer))
+layer1 = tf.sigmoid(tf.matmul(x, theta1) + bias1)
+output = tf.sigmoid(tf.matmul(layer1, theta2) + bias2)
 
-for i in range(2000):
-    update()
-    if i %500 == 5:
-        y_HiddenLayer = sigmoid(np.dot(x,w1))
-        y_OutputLayer = sigmoid(np.dot(y_HiddenLayer,w2))
-        print('Errir:', y_OutputLayer - y_HiddenLayer)  # 打印误差
+cost = tf.reduce_mean(tf.square(output - Y.T))
+train_step = tf.train.GradientDescentOptimizer(LEARNING_RATE).minimize(cost)
 
-# 显示结果
-def judge(x):
-    if (x >= 0.5):
-        return 1
-    else:
-        return 0
-
-for i in map(judge, y_OutputLayer):
-    print(i)
+init = tf.global_variables_initializer()
+sess = tf.Session()
+sess.run(init)
+for i in range(STEP):
+    sess.run(train_step, feed_dict={x: X, y: Y})
+    if i % 500 == 0:
+        print('Batch:', i)
+        print('Inference:')
+        print(sess.run(output, feed_dict={x: X, y: Y}))
+        print('cose:', sess.run(cost, feed_dict={x: X, y: Y}))
